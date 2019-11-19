@@ -1,0 +1,47 @@
+{
+  "name": "reserva",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "id": {
+      "type": "string",
+      "required": true
+    },
+    "tipo": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "string",
+      "required": false,
+      "default": "ativa"
+    },
+    "inicioEm": {
+      "type": "date",
+      "required": true
+    },
+    "fimEm": {
+      "type": "date",
+      "required": true
+    },
+    "criadoEm": {
+      "type": "date",
+      "required": true
+    },
+    "duracao": {
+      "type": "number",
+      "required": true
+    },
+    "valor": {
+      "type": "number",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
