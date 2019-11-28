@@ -1,5 +1,6 @@
 'use strict';
-const validacao = require('../validacao')
+const validacao = require('../validacao');
+const enumStatus = require('../../enum/status').status;
 
 module.exports = function(Reserva) {
     Reserva.disableRemoteMethodByName('patchOrCreate');
@@ -13,19 +14,24 @@ module.exports = function(Reserva) {
     Reserva.disableRemoteMethodByName('count');
     Reserva.disableRemoteMethodByName('findOne');
     Reserva.disableRemoteMethodByName('replaceOrCreate_post_reservas_replaceOrCreate');
-    Reserva.disableRemoteMethodByName('updateAll');
     Reserva.disableRemoteMethodByName('upsertWithWhere');
 
 
-    Reserva.observe('before save', async function validação(ctx, next){
+    Reserva.observe('before save', async function validação(ctx){
         if(ctx.instance){
             ctx.instance.criadoEm = new Date();
             ctx.instance.duracao = await validacao.validarDuracao(ctx.instance.inicioEm, ctx.instance.fimEm);
             ctx.instance.valor = await validacao.validarValor(ctx.instance.duracao);
+            ctx.instance.tipo = await validacao.validarTipo(ctx.instance.tipo);
+            ctx.instance.status = await validacao.validarStatus(ctx.instance.status);
 
-            console.log("duração: ", ctx.instance.duracao);
-            console.log("valor: ", ctx.instance.valor);
         }
-        next();
-    })
+    });
+
+    Reserva.on('attached', async function(ctx){
+        Reserva.deleteById(async function (error, ctx){
+             console.log('delete')
+             console.log('ctx: ', ctx.where)
+        })
+    });
 }

@@ -1,5 +1,9 @@
 const status = {
-    ativo: "ativo",
-    cancelado: "cancelado",
+    ativa: "ativa",
+    cancelada: "cancelada",
     paga: "paga"
+}
+
+module.exports = {
+    status
 }

@@ -38,6 +38,10 @@
     "valor": {
       "type": "number",
       "required": true
+    },
+    "canceladaEm": {
+      "type": "date",
+      "required": false
     }
   },
   "validations": [],
