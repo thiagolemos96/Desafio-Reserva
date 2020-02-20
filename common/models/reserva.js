@@ -1,8 +1,64 @@
 'use strict';
-const validacao = require('../validacao');
+const validacao = require('../validacao-reserva');
 const enumStatus = require('../../enum/status').status;
 
 module.exports = function(Reserva) {
+
+    async function validaEntradaAntesDeSalvar(ctx, next) {
+        try{
+            if(ctx.instance){
+                ctx.instance.tipo = ctx.instance.tipo.toUpperCase();
+                const duracao = Math.floor((ctx.instance.fimEm - ctx.instance.inicioEm)/ (1000 * 60));
+                const duracaoValidada = validacao.validarDuracao(duracao);
+                const statusValidada = validacao.validarStatus(ctx.instance.status);
+                const horarioValidado = await validacao.validarHorario(Reserva, ctx.instance);
+                const tipoValidado = validacao.validarTipo(ctx.instance.tipo);
+                
+                if(!horarioValidado){
+                    let error = new Error();
+                        error.message = 'O horário solicitado não está disponível, favor selecione um outro horário.';
+                        error.code = "HORARIO_INVALIDO"
+                        error.statusCode = 422;
+                    
+                    next(error);
+                    return;
+                } else if(!statusValidada){
+                    let error = new Error();
+                        error.statusCode = 400;
+                        error.message = 'Status Invalido';
+                    
+                        next(error);
+                    return;
+                } else if(!duracaoValidada){
+                    let error = new Error();
+                        error.statusCode = 422;
+                        error.message = 'Duração Invalida';
+                
+                    next(error);
+                    return;
+                } else if(!tipoValidado){
+                    let error = new Error();
+                        error.statusCode = 400;
+                        error.message = 'Tipo Invalidoß';
+                    
+                    next(error);
+                    return
+                } else {
+                    ctx.instance.criadoEm = new Date();
+                    ctx.instance.duracao = duracao;
+                    ctx.instance.valor = parseFloat(duracao * 0.50);
+
+                    next();
+                    return;
+                }
+
+            }
+        } catch(error){
+            next(error);
+            return;
+        }
+}
+
     Reserva.disableRemoteMethodByName('patchOrCreate');
     Reserva.disableRemoteMethodByName('replaceOrCreate');
     Reserva.disableRemoteMethodByName('reserva_prototype_patchAttributes');
@@ -16,22 +72,17 @@ module.exports = function(Reserva) {
     Reserva.disableRemoteMethodByName('replaceOrCreate_post_reservas_replaceOrCreate');
     Reserva.disableRemoteMethodByName('upsertWithWhere');
 
-
-    Reserva.observe('before save', async function validação(ctx){
-        if(ctx.instance){
-            ctx.instance.criadoEm = new Date();
-            ctx.instance.duracao = await validacao.validarDuracao(ctx.instance.inicioEm, ctx.instance.fimEm);
-            ctx.instance.valor = await validacao.validarValor(ctx.instance.duracao);
-            ctx.instance.tipo = await validacao.validarTipo(ctx.instance.tipo);
-            ctx.instance.status = await validacao.validarStatus(ctx.instance.status);
-
-        }
+    Reserva.on('attached', function(){
+        Reserva.deleteById = function (id, ctx, cb){
+            Reserva.updateAll({id: id},{
+                status: enumStatus.cancelado,
+                canceladaEm: new Date()
+            }, cb);
+       };
     });
 
-    Reserva.on('attached', async function(ctx){
-        Reserva.deleteById(async function (error, ctx){
-             console.log('delete')
-             console.log('ctx: ', ctx.where)
-        })
+    Reserva.observe('before save', (ctx, next) => {
+        validaEntradaAntesDeSalvar(ctx, next);
     });
+
 }

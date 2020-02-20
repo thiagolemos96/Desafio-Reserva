@@ -1,7 +1,7 @@
 const status = {
-    ativa: "ativa",
-    cancelada: "cancelada",
-    paga: "paga"
+    ativo: "ativa",
+    cancelado: "cancelada",
+    pago: "paga"
 }
 
 module.exports = {

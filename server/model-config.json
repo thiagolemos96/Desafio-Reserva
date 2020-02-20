@@ -16,5 +16,9 @@
   "reserva": {
     "dataSource": "DataSource",
     "public": true
+  },
+  "disponibilidade": {
+    "dataSource": "DataSource",
+    "public": true
   }
 }
